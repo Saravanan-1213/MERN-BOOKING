@@ -11,7 +11,7 @@ const Checkout = ({ subtotal }) => {
   const [loading, setLoading] = useState(true);
   // const apiUrl = "http://localhost:4000/payments";
   useEffect(() => {
-    axios("http://localhost:4000/checkout-payment", {
+    axios("https://mern-booking-backend.onrender.com/checkout-payment", {
       method: "POST",
       headers: { "Content-type": "application/json" },
     })

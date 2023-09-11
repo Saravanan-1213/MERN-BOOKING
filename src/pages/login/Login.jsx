@@ -29,7 +29,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:4000/auth/api/login",
+        "https://mern-booking-backend.onrender.com/auth/api/login",
         {
           username,
           password,
@@ -65,7 +65,7 @@ const Register = () => {
     event.preventDefault();
     try {
       await axios.post(
-        "http://localhost:4000/auth/api/register",
+        "https://mern-booking-backend.onrender.com/auth/api/register",
         {
           username,
           password,
