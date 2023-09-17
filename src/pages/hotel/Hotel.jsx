@@ -10,16 +10,17 @@ import {
   faCircleXmark,
   faLocationDot,
 } from "@fortawesome/free-solid-svg-icons";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import useFetch from "../../hooks/useFetch";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SearchContext } from "../../context/SearchContext";
 import { AuthContext } from "../../context/AuthContext";
 import Reserve from "../../components/reserve/Reserve";
+import StripeCheckout from "react-stripe-checkout";
 import axios from "axios";
-import {toast} from 'react-toastify';
-import { loadStripe } from "@stripe/stripe-js";
-import Checkout from "../../payments";
+
+
+
 
 
 const Hotel = () => {
@@ -28,6 +29,8 @@ const Hotel = () => {
   const [slideNumber, setSlideNumber] = useState(0);
   const [open, setOpen] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+  const [stripeToken, setStripeToken] = useState(null);
+ 
 
   const { data, loading, error } = useFetch(`https://mern-booking-backend.onrender.com/api/hotels/find/${id}`);
   const { user } = useContext(AuthContext);
@@ -70,23 +73,25 @@ const Hotel = () => {
     }
   };
 
+  const onToken = (token) =>{
+    setStripeToken(token)
+  }
+  console.log(stripeToken)
  
-  // const handlePayment = async () =>{
-  //   const stripePromise = await loadStripe("pk_test_51NlYS5SHJwGgeB5DuFxYapFSicuLPjMhuFq5SCyqLrieMoJHRCVAErozrZLfI3bJSoHG2cyfBR1Mm9BEdOdOcFkx006or7mnil")
-  //   const res = await axios("http://localhost:4000/checkout-payment",{
-  //     method: "POST",
-  //   headers: {
-  //     "content-type" : "application/json"
-  //   },
-  //   body : JSON.stringify(days)
-  //   })
-  //   if(res.statusCode === 500) return
-  //    console.log(res)
-
-  //    toast("Redirect to payment Gateway....")
-  //    stripePromise.redirectToCheckout({sessionId:res})
-
-  // }
+  useEffect(() => {
+    const makeRequest = async () => {
+      try {
+        const res = await axios.post("https://mern-booking-backend.onrender.com/payment", {
+          tokenId: stripeToken.id,
+          amount: `${days * data.cheapestPrice * options.room* 100}`,
+        });
+        navigate("/success", {
+          stripeData: res.data,
+          products: days, });
+      } catch {}
+    };
+    stripeToken && makeRequest();
+  }, [stripeToken]);
 
   
   return (
@@ -164,10 +169,17 @@ const Hotel = () => {
                   <b>${days * data.cheapestPrice * options.room}</b> ({days}{" "}
                   nights)
                 </h2>
-               <Checkout>
+               <StripeCheckout
+               name="Bookings"
+               shippingAddress
+               description="Total Price"
+               amount={`${days * data.cheapestPrice * options.room* 100}`}
+                token={onToken}            
+               stripeKey="pk_test_51NlYS5SHJwGgeB5DuFxYapFSicuLPjMhuFq5SCyqLrieMoJHRCVAErozrZLfI3bJSoHG2cyfBR1Mm9BEdOdOcFkx006or7mnil"
+               >
               <button onClick={handleClick}>Reserve or Book Now!</button>
               
-              </Checkout>
+              </StripeCheckout>
               </div>
             </div>
           </div>
